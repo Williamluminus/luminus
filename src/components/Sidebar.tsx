@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Store,
+  Bot,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -25,6 +26,7 @@ const menuItems = [
   { href: "/dashboard/customers", label: "Clientes", icon: Users },
   { href: "/dashboard/financial", label: "Financeiro", icon: DollarSign },
   { href: "/dashboard/inventory", label: "Estoque", icon: Warehouse },
+  { href: "/dashboard/agents", label: "Agentes IA", icon: Bot },
   { href: "/dashboard/reports", label: "Relatórios", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ];

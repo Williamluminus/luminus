@@ -1,17 +1,21 @@
 "use client";
 
-import { Send, Paperclip } from "lucide-react";
+import { Send, Square, Paperclip } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
   disabled?: boolean;
+  isStreaming?: boolean;
+  onStopStreaming?: () => void;
   placeholder?: string;
 }
 
 export default function ChatInput({
   onSendMessage,
   disabled = false,
+  isStreaming = false,
+  onStopStreaming,
   placeholder = "Digite sua mensagem...",
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
@@ -60,18 +64,28 @@ export default function ChatInput({
             rows={1}
             className="input resize-none !py-3 !pr-12 min-h-[48px] max-h-[160px] bg-gray-50"
           />
-          <button
-            onClick={handleSubmit}
-            disabled={!message.trim() || disabled}
-            className="absolute right-2 bottom-2 p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            title="Enviar mensagem (Enter)"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {isStreaming ? (
+            <button
+              onClick={onStopStreaming}
+              className="absolute right-2 bottom-2 p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all"
+              title="Parar resposta"
+            >
+              <Square className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={!message.trim() || disabled}
+              className="absolute right-2 bottom-2 p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              title="Enviar mensagem (Enter)"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
       <p className="text-center text-xs text-gray-400 mt-2">
-        Pressione <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-500 font-mono text-[10px]">Enter</kbd> para enviar, <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-500 font-mono text-[10px]">Shift+Enter</kbd> para nova linha
+        Respostas via <span className="font-semibold text-gray-500">Claude API</span> &middot; Pressione <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-500 font-mono text-[10px]">Enter</kbd> para enviar
       </p>
     </div>
   );

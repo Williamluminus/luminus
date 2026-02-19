@@ -2,7 +2,7 @@
 
 import { agents } from "@/data/agents";
 import { cn } from "@/lib/utils";
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Sparkles, Zap } from "lucide-react";
 import type { Agent } from "@/data/agents";
 
 interface EmptyChatProps {
@@ -18,12 +18,18 @@ export default function EmptyChat({ onSelectAgent }: EmptyChatProps) {
         <Bot className="w-10 h-10 text-primary-600" />
       </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        Agentes AIOS
+        Futury Squad
       </h2>
-      <p className="text-gray-500 text-center max-w-md mb-8">
-        Converse com agentes especializados para ajudar no desenvolvimento,
-        planejamento, design e muito mais.
+      <p className="text-gray-500 text-center max-w-md mb-2">
+        Converse com agentes AIOS especializados, agora com respostas
+        inteligentes via Claude AI em tempo real.
       </p>
+      <div className="flex items-center gap-2 mb-8">
+        <Zap className="w-3.5 h-3.5 text-green-500" />
+        <p className="text-xs text-green-600 font-medium">
+          IA Real &middot; Streaming &middot; 12 Agentes Especializados
+        </p>
+      </div>
 
       <div className="w-full max-w-2xl">
         <div className="flex items-center gap-2 mb-4">
@@ -61,6 +67,11 @@ export default function EmptyChat({ onSelectAgent }: EmptyChatProps) {
             </button>
           ))}
         </div>
+
+        {/* Show all agents link */}
+        <p className="text-center text-xs text-gray-400 mt-4">
+          +{agents.length - featuredAgents.length} agentes disponíveis &middot; Clique em &quot;Nova&quot; para ver todos
+        </p>
       </div>
     </div>
   );

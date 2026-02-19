@@ -1,5 +1,5 @@
 // ============================
-// AIOS Agents - Chat Dashboard Data
+// AIOS Agents - Futury Squad Chat
 // ============================
 
 export interface Agent {
@@ -10,6 +10,7 @@ export interface Agent {
   description: string;
   color: string;
   skills: string[];
+  signature: string;
 }
 
 export interface ChatMessage {
@@ -29,247 +30,193 @@ export interface Conversation {
   messages: ChatMessage[];
 }
 
-// All 12 AIOS agents
+// All 12 AIOS agents with real personas
 export const agents: Agent[] = [
   {
     id: "dev",
     name: "Dex",
-    role: "Developer",
+    role: "Senior Software Engineer",
     emoji: "💻",
-    description: "Implementação de código, debugging, refatoração e boas práticas de desenvolvimento.",
+    description: "Expert implementation specialist. Implements code with precision, debugging, refactoring and best practices.",
     color: "bg-blue-500",
     skills: ["TypeScript", "React", "Node.js", "SQL", "Testing"],
+    signature: "— Dex, sempre construindo 🔨",
   },
   {
     id: "qa",
-    name: "QA Scout",
-    role: "Quality Assurance",
-    emoji: "🔍",
-    description: "Testes, revisão de código e validação de qualidade.",
+    name: "Quinn",
+    role: "Test Architect",
+    emoji: "✅",
+    description: "Quality advisory authority. Thorough reviews, test plans, edge case identification and requirements validation.",
     color: "bg-green-500",
-    skills: ["Testes Unitários", "E2E", "Code Review", "Bug Tracking"],
+    skills: ["Unit Tests", "E2E", "Code Review", "Given-When-Then"],
+    signature: "— Quinn, guardião da qualidade 🛡️",
   },
   {
     id: "architect",
-    name: "Arch Master",
-    role: "Arquiteto de Software",
-    emoji: "🏗️",
-    description: "Decisões de arquitetura, design de sistema e padrões técnicos.",
+    name: "Aria",
+    role: "System Architect",
+    emoji: "🏛️",
+    description: "Holistic full-stack technical leader. System design, technology selection, API design and deployment strategies.",
     color: "bg-purple-500",
-    skills: ["System Design", "Microservices", "Clean Architecture", "DDD"],
+    skills: ["System Design", "API Design", "Tech Selection", "DDD"],
+    signature: "— Aria, arquitetando o futuro 🏗️",
   },
   {
     id: "pm",
-    name: "PM Lead",
-    role: "Gerente de Projeto",
-    emoji: "📊",
-    description: "Planejamento de projeto, gestão de stakeholders e cronogramas.",
+    name: "Morgan",
+    role: "Product Strategist",
+    emoji: "📋",
+    description: "Investigative product strategist. PRDs, roadmaps, feature prioritization and data-informed decisions.",
     color: "bg-orange-500",
-    skills: ["Roadmap", "Sprints", "Stakeholders", "Métricas"],
+    skills: ["PRD", "Roadmap", "MoSCoW", "RICE", "Strategy"],
+    signature: "— Morgan, planejando o futuro 📊",
   },
   {
     id: "po",
-    name: "PO Master",
+    name: "Pax",
     role: "Product Owner",
     emoji: "🎯",
-    description: "Criação de stories, definição de requisitos e priorização de backlog.",
+    description: "Technical product owner & process steward. Backlog management, story validation and sprint planning.",
     color: "bg-red-500",
-    skills: ["User Stories", "Backlog", "Requisitos", "Priorização"],
+    skills: ["User Stories", "Backlog", "Acceptance Criteria", "Sprint Planning"],
+    signature: "— Pax, equilibrando prioridades 🎯",
   },
   {
     id: "devops",
-    name: "DevOps Guardian",
-    role: "Engenheiro DevOps",
-    emoji: "🔧",
-    description: "Infraestrutura, deploys, CI/CD e monitoramento.",
+    name: "Gage",
+    role: "DevOps Specialist",
+    emoji: "⚡",
+    description: "Repository integrity guardian. CI/CD, Docker, Kubernetes, cloud infrastructure and monitoring.",
     color: "bg-cyan-500",
-    skills: ["Docker", "CI/CD", "AWS", "Kubernetes", "Monitoring"],
+    skills: ["Docker", "CI/CD", "AWS", "Kubernetes", "Git"],
+    signature: "— Gage, deployando com confiança 🚀",
   },
   {
     id: "data-engineer",
-    name: "Data Sage",
-    role: "Engenheiro de Dados",
-    emoji: "📈",
-    description: "Pipelines de dados, ETL, analytics e modelagem de dados.",
+    name: "Dara",
+    role: "Database Architect",
+    emoji: "📊",
+    description: "Master database architect & reliability engineer. Schema design, ETL, query optimization and migrations.",
     color: "bg-emerald-500",
-    skills: ["ETL", "SQL", "Data Pipeline", "Analytics", "Modelagem"],
+    skills: ["SQL", "ETL", "Schema Design", "Migrations", "Supabase"],
+    signature: "— Dara, arquitetando dados 🗄️",
   },
   {
     id: "analyst",
-    name: "Analyst Pro",
-    role: "Analista de Negócios",
-    emoji: "📋",
-    description: "Análise de negócios, brainstorming e discovery.",
+    name: "Atlas",
+    role: "Strategic Analyst",
+    emoji: "🔍",
+    description: "Insightful analyst & strategic ideation partner. Market research, competitive analysis and structured brainstorming.",
     color: "bg-amber-500",
-    skills: ["Análise", "Discovery", "Brainstorming", "Documentação"],
+    skills: ["Market Research", "Competitive Analysis", "Discovery", "Reports"],
+    signature: "— Atlas, investigando a verdade 🔎",
   },
   {
     id: "sm",
-    name: "Scrum Master",
+    name: "River",
     role: "Scrum Master",
-    emoji: "⚡",
-    description: "Gestão de sprints, cerimônias ágeis e fluxo de trabalho.",
+    emoji: "🌊",
+    description: "Technical scrum master & story preparation specialist. Crystal-clear stories, sprint management and impediment removal.",
     color: "bg-yellow-500",
-    skills: ["Scrum", "Kanban", "Retrospectivas", "Daily"],
+    skills: ["Scrum", "Stories", "Sprint Planning", "Facilitation"],
+    signature: "— River, removendo obstáculos 🌊",
   },
   {
     id: "ux-design-expert",
-    name: "UX Expert",
+    name: "Uma",
     role: "UX/UI Designer",
     emoji: "🎨",
-    description: "Design de interface, padrões UX e design system.",
+    description: "UX/UI designer & design system architect. Atomic Design, user research, wireframes and accessible components.",
     color: "bg-pink-500",
-    skills: ["UI Design", "UX Research", "Prototyping", "Design System"],
+    skills: ["UI Design", "UX Research", "Atomic Design", "Accessibility"],
+    signature: "— Uma, desenhando com empatia 💝",
   },
   {
     id: "aios-master",
-    name: "AIOS Master",
-    role: "Framework Lead",
+    name: "Orion",
+    role: "Framework Orchestrator",
     emoji: "👑",
-    description: "Conhecimento do framework AIOS, orquestração de agentes.",
+    description: "Master orchestrator & framework developer. Creates agents, workflows and orchestrates the entire AIOS system.",
     color: "bg-indigo-500",
-    skills: ["AIOS", "Orquestração", "Workflows", "Configuração"],
+    skills: ["AIOS", "Orchestration", "Workflows", "Agents"],
+    signature: "— Orion, orquestrando o sistema 🎯",
   },
   {
     id: "squad-creator",
-    name: "Squad Creator",
-    role: "Meta-Agent",
-    emoji: "⚙️",
-    description: "Cria e gerencia squads de agentes para tarefas complexas.",
+    name: "Craft",
+    role: "Squad Architect",
+    emoji: "🏗️",
+    description: "Squad architect & builder. Creates structured squads, validates against schemas and manages agent distribution.",
     color: "bg-slate-500",
-    skills: ["Team Building", "Squads", "Delegação", "Coordenação"],
+    skills: ["Team Building", "Squads", "Task Architecture", "Validation"],
+    signature: "— Craft, sempre estruturando 🏗️",
   },
 ];
 
-// Mock conversations
-export const mockConversations: Conversation[] = [
-  {
-    id: "conv-1",
-    agentId: "dev",
-    title: "Implementar autenticação JWT",
-    lastMessage: "Pronto! Implementei o middleware de autenticação com refresh token.",
-    lastMessageAt: "2026-02-19T14:30:00",
-    messages: [
-      {
-        id: "msg-1",
-        agentId: "dev",
-        role: "user",
-        content: "Preciso implementar autenticação JWT no nosso projeto Next.js. Pode me ajudar?",
-        timestamp: "2026-02-19T14:00:00",
-      },
-      {
-        id: "msg-2",
-        agentId: "dev",
-        role: "assistant",
-        content: "Claro! Para implementar autenticação JWT no Next.js, vamos precisar de:\n\n1. **Biblioteca jsonwebtoken** para gerar e verificar tokens\n2. **Middleware** para proteger rotas da API\n3. **Refresh Token** para manter sessões seguras\n4. **Cookies HttpOnly** para armazenamento seguro\n\nVou criar a estrutura passo a passo. Quer que eu comece pelo middleware ou pela rota de login?",
-        timestamp: "2026-02-19T14:05:00",
-      },
-      {
-        id: "msg-3",
-        agentId: "dev",
-        role: "user",
-        content: "Comece pelo middleware, por favor.",
-        timestamp: "2026-02-19T14:10:00",
-      },
-      {
-        id: "msg-4",
-        agentId: "dev",
-        role: "assistant",
-        content: "Pronto! Implementei o middleware de autenticação com refresh token. Ele verifica o token JWT em cada requisição protegida e renova automaticamente quando está perto de expirar. Aqui está a estrutura:\n\n```typescript\n// middleware.ts\nimport { NextResponse } from 'next/server'\nimport { verifyToken } from '@/lib/auth'\n\nexport function middleware(request) {\n  const token = request.cookies.get('auth-token')\n  if (!token) {\n    return NextResponse.redirect('/login')\n  }\n  const payload = verifyToken(token.value)\n  if (!payload) {\n    return NextResponse.redirect('/login')\n  }\n  return NextResponse.next()\n}\n```\n\nQuer que eu crie a rota de login agora?",
-        timestamp: "2026-02-19T14:30:00",
-      },
-    ],
-  },
-  {
-    id: "conv-2",
-    agentId: "architect",
-    title: "Arquitetura de microserviços",
-    lastMessage: "Recomendo separar em 3 serviços: Auth, Catalog e Orders.",
-    lastMessageAt: "2026-02-19T10:45:00",
-    messages: [
-      {
-        id: "msg-5",
-        agentId: "architect",
-        role: "user",
-        content: "Estamos pensando em migrar o monolito para microserviços. Qual seria a melhor abordagem?",
-        timestamp: "2026-02-19T10:00:00",
-      },
-      {
-        id: "msg-6",
-        agentId: "architect",
-        role: "assistant",
-        content: "Recomendo separar em 3 serviços: Auth, Catalog e Orders. Essa divisão segue os bounded contexts do domínio e minimiza acoplamento. Podemos usar o padrão Strangler Fig para migrar gradualmente sem downtime.",
-        timestamp: "2026-02-19T10:45:00",
-      },
-    ],
-  },
-  {
-    id: "conv-3",
-    agentId: "ux-design-expert",
-    title: "Design system do dashboard",
-    lastMessage: "Criei tokens de cor, tipografia e espaçamento para o design system.",
-    lastMessageAt: "2026-02-18T16:20:00",
-    messages: [
-      {
-        id: "msg-7",
-        agentId: "ux-design-expert",
-        role: "user",
-        content: "Preciso criar um design system consistente para o dashboard Luminus.",
-        timestamp: "2026-02-18T15:00:00",
-      },
-      {
-        id: "msg-8",
-        agentId: "ux-design-expert",
-        role: "assistant",
-        content: "Criei tokens de cor, tipografia e espaçamento para o design system. A paleta principal usa azul (#2563eb) como cor de ação, com variações para estados hover, active e disabled. Tipografia baseada em Inter com 4 escalas: display, heading, body e caption.",
-        timestamp: "2026-02-18T16:20:00",
-      },
-    ],
-  },
-  {
-    id: "conv-4",
-    agentId: "qa",
-    title: "Plano de testes E2E",
-    lastMessage: "Mapeei 24 cenários críticos para testes E2E com Playwright.",
-    lastMessageAt: "2026-02-18T11:00:00",
-    messages: [
-      {
-        id: "msg-9",
-        agentId: "qa",
-        role: "user",
-        content: "Quais cenários são prioritários para testes E2E do checkout?",
-        timestamp: "2026-02-18T10:00:00",
-      },
-      {
-        id: "msg-10",
-        agentId: "qa",
-        role: "assistant",
-        content: "Mapeei 24 cenários críticos para testes E2E com Playwright. Os 5 mais prioritários são:\n\n1. Fluxo completo de compra (happy path)\n2. Validação de estoque durante checkout\n3. Processamento de pagamento com cartão\n4. Aplicação de cupom de desconto\n5. Fallback em caso de erro no gateway de pagamento\n\nCada cenário inclui assertions para dados do pedido, email de confirmação e atualização de estoque.",
-        timestamp: "2026-02-18T11:00:00",
-      },
-    ],
-  },
-  {
-    id: "conv-5",
-    agentId: "devops",
-    title: "Pipeline CI/CD com GitHub Actions",
-    lastMessage: "Pipeline configurado com stages de lint, test, build e deploy.",
-    lastMessageAt: "2026-02-17T15:30:00",
-    messages: [
-      {
-        id: "msg-11",
-        agentId: "devops",
-        role: "user",
-        content: "Preciso configurar CI/CD para deploy automático na Vercel.",
-        timestamp: "2026-02-17T14:00:00",
-      },
-      {
-        id: "msg-12",
-        agentId: "devops",
-        role: "assistant",
-        content: "Pipeline configurado com stages de lint, test, build e deploy. O workflow roda em PRs para validação e faz deploy automático em merge para main. Includes cache de node_modules para builds mais rápidos.",
-        timestamp: "2026-02-17T15:30:00",
-      },
-    ],
-  },
-];
+// Suggested prompts per agent
+export const agentSuggestions: Record<string, string[]> = {
+  dev: [
+    "Crie um componente React de login com validação",
+    "Refatore esse código para usar Clean Architecture",
+    "Como implementar WebSocket com Next.js?",
+  ],
+  qa: [
+    "Crie um plano de testes para o fluxo de checkout",
+    "Quais edge cases devo testar nessa feature?",
+    "Review esse código e sugira melhorias de qualidade",
+  ],
+  architect: [
+    "Projete a arquitetura para um sistema de pagamentos",
+    "Quais trade-offs entre REST e GraphQL pra esse caso?",
+    "Como escalar esse monolito para microserviços?",
+  ],
+  pm: [
+    "Crie um PRD para o sistema de notificações",
+    "Priorize essas 5 features usando RICE",
+    "Monte um roadmap trimestral para o produto",
+  ],
+  po: [
+    "Escreva user stories para o módulo de cadastro",
+    "Defina critérios de aceite para essa feature",
+    "Organize o backlog por valor de negócio",
+  ],
+  devops: [
+    "Configure CI/CD com GitHub Actions e Docker",
+    "Como otimizar o Dockerfile para produção?",
+    "Setup de monitoring com alertas de CPU e latência",
+  ],
+  "data-engineer": [
+    "Projete o schema do banco para e-commerce",
+    "Otimize essa query SQL que está lenta",
+    "Crie um pipeline ETL para analytics",
+  ],
+  analyst: [
+    "Faça uma análise competitiva do mercado de SaaS",
+    "Quais métricas monitorar para Product-Market Fit?",
+    "Brainstorming de features para retenção de usuários",
+  ],
+  sm: [
+    "Crie a próxima user story do backlog",
+    "Facilite a retrospectiva da sprint",
+    "Identifique impedimentos no fluxo atual",
+  ],
+  "ux-design-expert": [
+    "Audite o design system atual e sugira melhorias",
+    "Crie wireframes para o fluxo de onboarding",
+    "Quais princípios de acessibilidade aplicar aqui?",
+  ],
+  "aios-master": [
+    "Configure o framework AIOS para esse projeto",
+    "Qual workflow usar para essa feature?",
+    "Orquestre o squad para essa entrega",
+  ],
+  "squad-creator": [
+    "Monte um squad para desenvolvimento fullstack",
+    "Qual a composição ideal para um MVP?",
+    "Crie um squad de discovery com 3 agentes",
+  ],
+};
+
+// Start with empty conversations - real conversations via Claude API
+export const mockConversations: Conversation[] = [];

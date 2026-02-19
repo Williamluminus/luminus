@@ -7,9 +7,10 @@ import { useState } from "react";
 
 interface ChatMessageBubbleProps {
   message: ChatMessage;
+  isStreaming?: boolean;
 }
 
-export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
+export default function ChatMessageBubble({ message, isStreaming }: ChatMessageBubbleProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
   const agent = agents.find((a) => a.id === message.agentId);
@@ -27,7 +28,7 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
     });
   };
 
-  // Simple markdown-like rendering for code blocks
+  // Markdown rendering for code blocks, bold, inline code, lists
   const renderContent = (content: string) => {
     const parts = content.split(/(```[\s\S]*?```)/g);
     return parts.map((part, i) => {
@@ -55,7 +56,7 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         );
       }
 
-      // Handle bold, inline code, and numbered lists
+      // Handle bold, inline code, and text
       return (
         <span key={i}>
           {part.split("\n").map((line, j) => (
@@ -73,7 +74,12 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                   return (
                     <code
                       key={k}
-                      className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-800 text-xs font-mono"
+                      className={cn(
+                        "px-1.5 py-0.5 rounded text-xs font-mono",
+                        isUser
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200 text-gray-800"
+                      )}
                     >
                       {segment.slice(1, -1)}
                     </code>
@@ -127,6 +133,9 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         )}
         <div className={cn(isUser ? "text-white" : "text-gray-800")}>
           {renderContent(message.content)}
+          {isStreaming && (
+            <span className="inline-block w-2 h-4 ml-0.5 bg-primary-500 animate-pulse rounded-sm" />
+          )}
         </div>
         <div
           className={cn(
@@ -134,8 +143,11 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
             isUser ? "text-white/60 justify-end" : "text-gray-400"
           )}
         >
-          <span>{formatTime(message.timestamp)}</span>
-          {!isUser && (
+          {!isStreaming && <span>{formatTime(message.timestamp)}</span>}
+          {isStreaming && (
+            <span className="text-green-500 font-medium">streaming...</span>
+          )}
+          {!isUser && !isStreaming && (
             <button
               onClick={handleCopy}
               className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-600"

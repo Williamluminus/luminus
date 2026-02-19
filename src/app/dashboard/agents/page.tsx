@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { agents, mockConversations, type Conversation, type ChatMessage, type Agent } from "@/data/agents";
+import {
+  agents,
+  agentSuggestions,
+  type Conversation,
+  type ChatMessage,
+  type Agent,
+} from "@/data/agents";
 import ConversationList from "@/components/agents/ConversationList";
 import ChatMessageBubble from "@/components/agents/ChatMessageBubble";
 import ChatInput from "@/components/agents/ChatInput";
@@ -9,79 +15,18 @@ import AgentSelector from "@/components/agents/AgentSelector";
 import TypingIndicator from "@/components/agents/TypingIndicator";
 import EmptyChat from "@/components/agents/EmptyChat";
 import { cn } from "@/lib/utils";
-import { Bot, PanelLeftClose, PanelLeft, Info } from "lucide-react";
-
-// Simulated agent responses
-const agentResponses: Record<string, string[]> = {
-  dev: [
-    "Analisando o código... Encontrei uma solução otimizada usando o padrão Strategy. Vou implementar passo a passo.",
-    "Boa ideia! Vou criar o componente com TypeScript e adicionar os testes unitários. Me dá um momento.",
-    "Fiz a refatoração usando Clean Code principles. O código ficou mais legível e testável.",
-  ],
-  qa: [
-    "Identifiquei 3 cenários de edge case que precisam de cobertura. Vou detalhar cada um.",
-    "Os testes E2E estão passando! Encontrei apenas um flaky test que precisa de ajuste no timeout.",
-    "Realizei a code review e tenho 5 sugestões de melhoria para qualidade do código.",
-  ],
-  architect: [
-    "Recomendo usar o padrão CQRS para essa feature. Separa responsabilidades e facilita scaling.",
-    "A arquitetura hexagonal é ideal nesse caso. Vou criar o diagrama C4 para visualização.",
-    "Analisei os trade-offs e recomendo PostgreSQL com cache em Redis para esse volume de dados.",
-  ],
-  pm: [
-    "Criei o roadmap do Q1 com as prioridades alinhadas. As entregas estão distribuídas em 3 sprints.",
-    "O relatório de status mostra 85% de conclusão do milestone. 2 tarefas estão bloqueadas.",
-    "Agendei a retrospectiva e preparei os dados de velocity das últimas 5 sprints.",
-  ],
-  po: [
-    "Escrevi 8 user stories com critérios de aceite detalhados. Estão priorizadas por valor de negócio.",
-    "O backlog está refinado e pronto para a sprint planning. Temos capacity para 34 story points.",
-    "Baseado no feedback dos usuários, sugiro pivotar a prioridade para melhorar a busca.",
-  ],
-  devops: [
-    "Pipeline CI/CD configurado com 4 stages: lint, test, build e deploy. Deploy automático em staging.",
-    "O container Docker está otimizado - reduzimos a imagem de 1.2GB para 180MB usando multi-stage.",
-    "Alarmes configurados no CloudWatch. Você receberá alertas de CPU > 80% e latência > 500ms.",
-  ],
-  "data-engineer": [
-    "O pipeline ETL está processando 2M registros/hora. Otimizei as queries com particionamento.",
-    "Dashboard de analytics pronto! Métricas de conversão, retenção e LTV estão atualizando em real-time.",
-    "Migração de dados concluída com validação de integridade. Zero registros perdidos.",
-  ],
-  analyst: [
-    "A análise de mercado mostra oportunidade de 23% de crescimento no segmento mobile.",
-    "Mapeei os fluxos atuais e identifiquei 4 gargalos no processo de checkout.",
-    "O benchmark com concorrentes revela que nosso NPS está 15 pontos acima da média do setor.",
-  ],
-  sm: [
-    "Sprint planning concluída! Time comprometeu com 32 story points em 8 items.",
-    "Velocity média das últimas 5 sprints: 34 points. Estamos consistentes com desvio de apenas 8%.",
-    "Identifiquei impedimentos no fluxo. Propondo um refinement extra para destravar o time.",
-  ],
-  "ux-design-expert": [
-    "Wireframes do novo fluxo de checkout prontos. Reduzi de 5 para 3 etapas com progressive disclosure.",
-    "Os testes de usabilidade mostraram taxa de conclusão de 92%. Usuários elogiaram a simplicidade.",
-    "Design system atualizado com novos tokens e componentes. Documentação no Storybook está pronta.",
-  ],
-  "aios-master": [
-    "O framework AIOS está configurado com 12 agentes ativos. Todos os workflows estão operacionais.",
-    "Para essa tarefa, recomendo usar o workflow brownfield-fullstack com o team fullstack.",
-    "Orchestração configurada! O squad será: Architect > PO > Dev > QA > DevOps, nessa ordem.",
-  ],
-  "squad-creator": [
-    "Squad criado com 4 agentes: Architect, Dev, QA e DevOps. Workflow de desenvolvimento ativado.",
-    "Recomendo o team IDE Minimal para essa tarefa: PO, SM, Dev e QA são suficientes.",
-    "Squad de discovery montado: Analyst, PM e UX Expert vão fazer o assessment inicial.",
-  ],
-};
+import { Bot, PanelLeftClose, PanelLeft, Info, Zap, Trash2 } from "lucide-react";
 
 export default function AgentsPage() {
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [showAgentSelector, setShowAgentSelector] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showAgentInfo, setShowAgentInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId);
   const activeAgent = activeConversation
@@ -94,7 +39,26 @@ export default function AgentsPage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [activeConversation?.messages.length, isTyping, scrollToBottom]);
+  }, [activeConversation?.messages.length, isStreaming, streamingContent, scrollToBottom]);
+
+  // Load conversations from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("futury-squad-conversations");
+    if (saved) {
+      try {
+        setConversations(JSON.parse(saved));
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, []);
+
+  // Save conversations to localStorage
+  useEffect(() => {
+    if (conversations.length > 0) {
+      localStorage.setItem("futury-squad-conversations", JSON.stringify(conversations));
+    }
+  }, [conversations]);
 
   const handleNewConversation = () => {
     setShowAgentSelector(true);
@@ -114,7 +78,21 @@ export default function AgentsPage() {
     setShowAgentSelector(false);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleDeleteConversation = (convId: string) => {
+    setConversations((prev) => prev.filter((c) => c.id !== convId));
+    if (activeConversationId === convId) {
+      setActiveConversationId(null);
+    }
+  };
+
+  const handleStopStreaming = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleSendMessage = async (content: string) => {
     if (!activeConversationId || !activeConversation) return;
 
     const userMessage: ChatMessage = {
@@ -125,6 +103,7 @@ export default function AgentsPage() {
       timestamp: new Date().toISOString(),
     };
 
+    // Add user message
     setConversations((prev) =>
       prev.map((c) =>
         c.id === activeConversationId
@@ -142,19 +121,78 @@ export default function AgentsPage() {
       )
     );
 
-    // Simulate agent typing
-    setIsTyping(true);
-    const delay = 1500 + Math.random() * 2000;
+    // Build messages for API
+    const currentConv = conversations.find((c) => c.id === activeConversationId);
+    const apiMessages = [
+      ...(currentConv?.messages || []).map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      { role: "user" as const, content },
+    ];
 
-    setTimeout(() => {
-      const responses = agentResponses[activeConversation.agentId] || agentResponses.dev;
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    // Start streaming
+    setIsStreaming(true);
+    setStreamingContent("");
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: apiMessages,
+          agentId: activeConversation.agentId,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
+      const decoder = new TextDecoder();
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.error) {
+                fullContent += `\n\n**Erro:** ${parsed.error}`;
+                setStreamingContent(fullContent);
+              } else if (parsed.text) {
+                fullContent += parsed.text;
+                setStreamingContent(fullContent);
+              }
+            } catch {
+              // ignore parse errors in SSE
+            }
+          }
+        }
+      }
+
+      // Add the complete assistant message
       const assistantMessage: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         agentId: activeConversation.agentId,
         role: "assistant",
-        content: randomResponse,
+        content: fullContent,
         timestamp: new Date().toISOString(),
       };
 
@@ -164,15 +202,70 @@ export default function AgentsPage() {
             ? {
                 ...c,
                 messages: [...c.messages, assistantMessage],
-                lastMessage: randomResponse,
+                lastMessage: fullContent.slice(0, 100),
                 lastMessageAt: assistantMessage.timestamp,
               }
             : c
         )
       );
-      setIsTyping(false);
-    }, delay);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        // User cancelled - save what we have
+        if (streamingContent) {
+          const partialMessage: ChatMessage = {
+            id: `msg-${Date.now() + 1}`,
+            agentId: activeConversation.agentId,
+            role: "assistant",
+            content: streamingContent + "\n\n*[Resposta interrompida]*",
+            timestamp: new Date().toISOString(),
+          };
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === activeConversationId
+                ? {
+                    ...c,
+                    messages: [...c.messages, partialMessage],
+                    lastMessage: "Resposta interrompida",
+                    lastMessageAt: partialMessage.timestamp,
+                  }
+                : c
+            )
+          );
+        }
+      } else {
+        // Add error message
+        const errorMessage: ChatMessage = {
+          id: `msg-${Date.now() + 1}`,
+          agentId: activeConversation.agentId,
+          role: "assistant",
+          content: `**Erro ao conectar com o agente.** Verifique se a ANTHROPIC_API_KEY está configurada no arquivo .env\n\nDetalhes: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+          timestamp: new Date().toISOString(),
+        };
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === activeConversationId
+              ? {
+                  ...c,
+                  messages: [...c.messages, errorMessage],
+                  lastMessage: "Erro na conexão",
+                  lastMessageAt: errorMessage.timestamp,
+                }
+              : c
+          )
+        );
+      }
+    } finally {
+      setIsStreaming(false);
+      setStreamingContent("");
+      abortControllerRef.current = null;
+    }
   };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
+  };
+
+  const suggestions = activeAgent ? agentSuggestions[activeAgent.id] || [] : [];
 
   return (
     <div className="flex h-[calc(100vh-7rem)] -m-6 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
@@ -189,6 +282,7 @@ export default function AgentsPage() {
             activeConversationId={activeConversationId}
             onSelectConversation={setActiveConversationId}
             onNewConversation={handleNewConversation}
+            onDeleteConversation={handleDeleteConversation}
           />
         )}
       </div>
@@ -221,9 +315,17 @@ export default function AgentsPage() {
                   {activeAgent.emoji}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {activeAgent.name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {activeAgent.name}
+                    </p>
+                    {isStreaming && (
+                      <span className="flex items-center gap-1 text-[10px] text-green-600 font-medium">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                        streaming
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500">{activeAgent.role}</p>
                 </div>
               </div>
@@ -234,10 +336,10 @@ export default function AgentsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">
-                    Agentes AIOS
+                    Futury Squad
                   </p>
                   <p className="text-xs text-gray-500">
-                    12 agentes disponíveis
+                    12 agentes AIOS com IA real
                   </p>
                 </div>
               </div>
@@ -257,7 +359,13 @@ export default function AgentsPage() {
                 ))}
               </div>
               <button
-                className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                onClick={() => setShowAgentInfo(!showAgentInfo)}
+                className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  showAgentInfo
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                )}
                 title="Informações do agente"
               >
                 <Info className="w-5 h-5" />
@@ -265,6 +373,35 @@ export default function AgentsPage() {
             </div>
           )}
         </div>
+
+        {/* Agent Info Panel */}
+        {showAgentInfo && activeAgent && (
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-start gap-3 max-w-2xl mx-auto">
+              <div
+                className={cn(
+                  "w-12 h-12 rounded-full flex items-center justify-center text-white text-xl shrink-0",
+                  activeAgent.color
+                )}
+              >
+                {activeAgent.emoji}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">{activeAgent.name}</h3>
+                <p className="text-xs text-gray-500 mb-2">{activeAgent.role}</p>
+                <p className="text-xs text-gray-600 mb-2">{activeAgent.description}</p>
+                <div className="flex flex-wrap gap-1">
+                  {activeAgent.skills.map((skill) => (
+                    <span key={skill} className="badge bg-white text-gray-600 border border-gray-200 text-[10px]">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2 italic">{activeAgent.signature}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Messages Area or Empty State */}
         {activeConversation ? (
@@ -283,35 +420,64 @@ export default function AgentsPage() {
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
                     {activeAgent.name}
                   </h3>
-                  <p className="text-sm text-gray-500 max-w-md mb-4">
+                  <p className="text-sm text-gray-500 max-w-md mb-2">
                     {activeAgent.description}
                   </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {activeAgent.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="badge bg-gray-100 text-gray-600"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-400 mt-6">
-                    Envie uma mensagem para iniciar a conversa
-                  </p>
+                  <p className="text-xs text-gray-400 italic mb-6">{activeAgent.signature}</p>
+
+                  {/* Suggestion chips */}
+                  {suggestions.length > 0 && (
+                    <div className="w-full max-w-lg">
+                      <div className="flex items-center gap-1.5 mb-3 justify-center">
+                        <Zap className="w-3.5 h-3.5 text-primary-500" />
+                        <p className="text-xs font-medium text-gray-500">Sugestões para começar</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {suggestions.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="text-left px-4 py-3 rounded-xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50 text-sm text-gray-700 hover:text-primary-700 transition-all"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+
               {activeConversation.messages.map((msg) => (
                 <ChatMessageBubble key={msg.id} message={msg} />
               ))}
-              {isTyping && activeConversation && (
+
+              {/* Streaming message */}
+              {isStreaming && streamingContent && (
+                <ChatMessageBubble
+                  message={{
+                    id: "streaming",
+                    agentId: activeConversation.agentId,
+                    role: "assistant",
+                    content: streamingContent,
+                    timestamp: new Date().toISOString(),
+                  }}
+                  isStreaming
+                />
+              )}
+
+              {/* Typing indicator before first token */}
+              {isStreaming && !streamingContent && (
                 <TypingIndicator agentId={activeConversation.agentId} />
               )}
+
               <div ref={messagesEndRef} />
             </div>
             <ChatInput
               onSendMessage={handleSendMessage}
-              disabled={isTyping}
+              disabled={isStreaming}
+              isStreaming={isStreaming}
+              onStopStreaming={handleStopStreaming}
               placeholder={`Falar com ${activeAgent?.name || "agente"}...`}
             />
           </>
